@@ -1,5 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Link } from "expo-router";
+import Logo from '../assets/App Assets/icon.svg';
 
 export default function Index() {
   return (
