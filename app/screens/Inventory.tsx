@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, FlatList, Keyboard, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSQLiteContext } from "expo-sqlite";
 import { useRouter } from "expo-router";
 import { addProduct, deleteProduct, getProducts, updateProduct, type Product } from "../../db/database";
@@ -56,6 +56,7 @@ export default function Inventory() {
       }
 
       clearForm();
+      Keyboard.dismiss();
       await loadProducts();
     } catch {
       Alert.alert("Could not save product", "The SKU may already exist.");
@@ -106,19 +107,22 @@ export default function Inventory() {
         data={products}
         keyExtractor={(product) => String(product.id)}
         style={styles.list}
+        keyboardShouldPersistTaps="handled"
         ListEmptyComponent={<Text style={styles.empty}>No products yet.</Text>}
         renderItem={({ item }) => (
           <View style={styles.product}>
-            <View>
+            <View style={styles.productDetails}>
               <Text style={styles.productName}>{item.name}</Text>
               <Text style={styles.productMeta}>{item.sku} | ${item.price.toFixed(2)} | {item.stock} in stock</Text>
             </View>
-            <Pressable onPress={() => handleEditProduct(item)}>
+            <View style={styles.productActions}>
+            <Pressable style={styles.actionButton} onPress={() => handleEditProduct(item)}>
               <Text style={styles.editText}>Edit</Text>
             </Pressable>
-            <Pressable onPress={() => handleDeleteProduct(item)}>
+            <Pressable style={styles.actionButton} onPress={() => handleDeleteProduct(item)}>
               <Text style={styles.deleteText}>Delete</Text>
             </Pressable>
+            </View>
           </View>
         )}
       />
@@ -134,7 +138,7 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     alignItems: "center", 
-    justifyContent: "center", 
+    justifyContent: "flex-start", 
     padding: 20, 
     backgroundColor: "#fff" 
 },
@@ -166,6 +170,7 @@ const styles = StyleSheet.create({
     width: undefined 
   },
   list: { 
+    flex: 1,
     width: "100%", 
     marginTop: 16 
   },
@@ -181,6 +186,19 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
     paddingVertical: 12,
+  },
+  productDetails: {
+    flex: 1,
+    marginRight: 8,
+  },
+  productActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  actionButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 8,
   },
   productName: { 
     fontSize: 16, 
