@@ -15,10 +15,10 @@ const metrics: Metric[] = [
 ];
 
 const metricToneStyles = {
-  blue: { backgroundColor: "#dcecff" },
-  green: { backgroundColor: "#dff3e6" },
-  orange: { backgroundColor: "#fff0d8" },
-  red: { backgroundColor: "#ffe2e0" },
+  blue: { backgroundColor: "#b4b8bd" },
+  green: { backgroundColor: "#b4b8bd" },
+  orange: { backgroundColor: "#b4b8bd" },
+  red: { backgroundColor: "#b4b8bd" },
 };
 
 const sales = [
@@ -67,7 +67,6 @@ export default function Index() {
         <View style={styles.header}>
           <View>
             <Text style={styles.brand}>JNY Minimart</Text>
-            <Text style={styles.pageTitle}>Dashboard</Text>
           </View>
           <View style={styles.profileCircle}>
             <Text style={styles.profileText}>J</Text>
@@ -147,12 +146,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "800",
     letterSpacing: 0,
-  },
-  pageTitle: {
-    color: "#202020",
-    fontFamily: "serif",
-    fontSize: 22,
-    marginTop: 8,
   },
   profileCircle: {
     alignItems: "center",
