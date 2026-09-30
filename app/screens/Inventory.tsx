@@ -113,7 +113,7 @@ export default function Inventory() {
           <View style={styles.product}>
             <View style={styles.productDetails}>
               <Text style={styles.productName}>{item.name}</Text>
-              <Text style={styles.productMeta}>{item.sku} | ${item.price.toFixed(2)} | {item.stock} in stock</Text>
+              <Text style={styles.productMeta}>{item.sku} | ₱{item.price.toFixed(2)} | {item.stock} in stock</Text>
             </View>
             <View style={styles.productActions}>
             <Pressable style={styles.actionButton} onPress={() => handleEditProduct(item)}>
