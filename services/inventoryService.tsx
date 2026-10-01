@@ -24,5 +24,3 @@ export function editProduct(db: SQLiteDatabase, product: Product) {
 export function removeProduct(db: SQLiteDatabase, productId: number) {
 	return deleteProduct(db, productId);
 }
-
-
