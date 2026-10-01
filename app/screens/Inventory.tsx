@@ -1,89 +1,25 @@
-import { useCallback, useEffect, useState } from "react";
-import { Alert, FlatList, Keyboard, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { useSQLiteContext } from "expo-sqlite";
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
-import { addProduct, deleteProduct, getProducts, updateProduct, type Product } from "../../db/database";
+import { useInventory } from "../../hooks/useInventory";
 
 export default function Inventory() {
   const router = useRouter();
-  const db = useSQLiteContext();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [name, setName] = useState("");
-  const [sku, setSku] = useState("");
-  const [price, setPrice] = useState("");
-  const [stock, setStock] = useState("");
-  const [editingProductId, setEditingProductId] = useState<number | null>(null);
-
-  const loadProducts = useCallback(async () => {
-    setProducts(await getProducts(db));
-  }, [db]);
-
-  useEffect(() => {
-    getProducts(db)
-      .then(setProducts)
-      .catch(() => Alert.alert("Error", "Could not load inventory."));
-  }, [db]);
-
-  function clearForm() {
-    setName("");
-    setSku("");
-    setPrice("");
-    setStock("");
-    setEditingProductId(null);
-  }
-
-  async function handleSaveProduct() {
-    const parsedPrice = Number(price);
-    const parsedStock = Number(stock);
-
-    if (!name.trim() || !sku.trim() || !Number.isFinite(parsedPrice) || !Number.isInteger(parsedStock)) {
-      Alert.alert("Check product details", "Enter a name, SKU, price, and whole-number stock quantity.");
-      return;
-    }
-
-    try {
-      const product = {
-        name: name.trim(),
-        sku: sku.trim(),
-        price: parsedPrice,
-        stock: parsedStock,
-      };
-
-      if (editingProductId === null) {
-        await addProduct(db, product);
-      } else {
-        await updateProduct(db, { id: editingProductId, ...product });
-      }
-
-      clearForm();
-      Keyboard.dismiss();
-      await loadProducts();
-    } catch {
-      Alert.alert("Could not save product", "The SKU may already exist.");
-    }
-  }
-
-  function handleEditProduct(product: Product) {
-    setEditingProductId(product.id);
-    setName(product.name);
-    setSku(product.sku);
-    setPrice(String(product.price));
-    setStock(String(product.stock));
-  }
-
-  function handleDeleteProduct(product: Product) {
-    Alert.alert("Delete product?", product.name, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          await deleteProduct(db, product.id);
-          await loadProducts();
-        },
-      },
-    ]);
-  }
+  const {
+    products,
+    name,
+    sku,
+    price,
+    stock,
+    editingProductId,
+    setName,
+    setSku,
+    setPrice,
+    setStock,
+    clearForm,
+    saveProduct,
+    editProductForm,
+    deleteProduct,
+  } = useInventory();
 
   return (
     <View style={styles.container}>
@@ -95,7 +31,7 @@ export default function Inventory() {
         <TextInput placeholder="Price" value={price} onChangeText={setPrice} style={[styles.input, styles.halfInput]} keyboardType="decimal-pad" />
         <TextInput placeholder="Stock" value={stock} onChangeText={setStock} style={[styles.input, styles.halfInput]} keyboardType="number-pad" />
       </View>
-      <Pressable style={styles.button} onPress={handleSaveProduct}>
+      <Pressable style={styles.button} onPress={saveProduct}>
         <Text style={styles.buttonText}>{editingProductId === null ? "Add product" : "Update product"}</Text>
       </Pressable>
       {editingProductId !== null && (
@@ -116,10 +52,10 @@ export default function Inventory() {
               <Text style={styles.productMeta}>{item.sku} | ₱{item.price.toFixed(2)} | {item.stock} in stock</Text>
             </View>
             <View style={styles.productActions}>
-            <Pressable style={styles.actionButton} onPress={() => handleEditProduct(item)}>
+            <Pressable style={styles.actionButton} onPress={() => editProductForm(item)}>
               <Text style={styles.editText}>Edit</Text>
             </Pressable>
-            <Pressable style={styles.actionButton} onPress={() => handleDeleteProduct(item)}>
+            <Pressable style={styles.actionButton} onPress={() => deleteProduct(item)}>
               <Text style={styles.deleteText}>Delete</Text>
             </Pressable>
             </View>
