@@ -12,6 +12,14 @@ const Font = StyleSheet.create({
   h1_zen_text: {
     fontFamily: 'ZenRegular',
     fontSize: 28
+  },
+  h2_zen_text: {
+    fontFamily: 'ZenRegular',
+    fontSize: 17.31
+  },
+  h3_zen_text: {
+    fontFamily: 'ZenRegular',
+    fontSize: 17.31 / 1.618
   }
 });
 
