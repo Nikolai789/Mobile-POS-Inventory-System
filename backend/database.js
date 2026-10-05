@@ -17,6 +17,11 @@ function rowsFromResult(result) {
   );
 }
 
+function hasColumn(tableName, columnName) {
+  return rowsFromResult(database.exec(`PRAGMA table_info(${tableName})`))
+    .some((column) => column.name === columnName);
+}
+
 async function initializeDatabase() {
   const SQL = await initSqlJs({
     locateFile: (file) => path.join(__dirname, 'node_modules', 'sql.js', 'dist', file),
@@ -34,7 +39,8 @@ async function initializeDatabase() {
       name TEXT NOT NULL,
       barcode TEXT NOT NULL UNIQUE,
       price REAL NOT NULL CHECK (price >= 0),
-      stock_quantity INTEGER NOT NULL DEFAULT 0 CHECK (stock_quantity >= 0)
+      stock_quantity INTEGER NOT NULL DEFAULT 0 CHECK (stock_quantity >= 0),
+      active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1))
     );
 
     CREATE TABLE IF NOT EXISTS sales (
@@ -51,6 +57,9 @@ async function initializeDatabase() {
       unit_price REAL NOT NULL CHECK (unit_price >= 0)
     );
   `);
+  if (!hasColumn('products', 'active')) {
+    database.run('ALTER TABLE products ADD COLUMN active INTEGER NOT NULL DEFAULT 1');
+  }
   persistDatabase();
   return database;
 }

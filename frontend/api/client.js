@@ -7,7 +7,7 @@ export async function apiRequest(path, options = {}) {
       headers: { 'Content-Type': 'application/json', ...options.headers },
       ...options,
     });
-  } catch (error) {
+  } catch (_error) {
     throw new Error('Unable to reach the POS server. Check that it is running and the URL is correct.');
   }
 
@@ -17,6 +17,20 @@ export async function apiRequest(path, options = {}) {
 }
 
 export const getProducts = () => apiRequest('/products');
+
+export const createProduct = (product) => apiRequest('/products', {
+  method: 'POST',
+  body: JSON.stringify(product),
+});
+
+export const updateProduct = (id, product) => apiRequest(`/products/${id}`, {
+  method: 'PUT',
+  body: JSON.stringify(product),
+});
+
+export const archiveProduct = (id) => apiRequest(`/products/${id}`, {
+  method: 'DELETE',
+});
 
 export const updateStock = (id, stock_quantity) => apiRequest(`/products/${id}/stock`, {
   method: 'PATCH',
