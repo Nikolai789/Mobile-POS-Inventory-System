@@ -15,6 +15,7 @@ export default function InventoryScreen() {
   const [modalVisible, setModalVisible] = useState(false);
 
   const loadProducts = useCallback(async () => {
+    console.log('Loading products...');
     setLoading(true);
     setError('');
     try {
