@@ -8,11 +8,17 @@ export async function apiRequest(path, options = {}) {
       ...options,
     });
   } catch (_error) {
-    throw new Error('Unable to reach the POS server. Check that it is running and the URL is correct.');
+    const error = new Error('Unable to reach the POS server. Check that it is running and the URL is correct.');
+    error.network = true;
+    throw error;
   }
 
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(body.error || 'The server returned an error.');
+  if (!response.ok) {
+    const error = new Error(body.error || 'The server returned an error.');
+    error.status = response.status;
+    throw error;
+  }
   return body;
 }
 
@@ -37,7 +43,11 @@ export const updateStock = (id, stock_quantity) => apiRequest(`/products/${id}/s
   body: JSON.stringify({ stock_quantity }),
 });
 
-export const createSale = (items) => apiRequest('/sales', {
+export const createSale = (sale) => apiRequest('/sales', {
   method: 'POST',
-  body: JSON.stringify({ items }),
+  body: JSON.stringify(sale),
 });
+
+export const getSales = () => apiRequest('/sales');
+
+export const getSale = (id) => apiRequest(`/sales/${id}`);
