@@ -46,6 +46,9 @@ async function initializeDatabase() {
     CREATE TABLE IF NOT EXISTS sales (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       total_amount REAL NOT NULL CHECK (total_amount >= 0),
+      cash_received REAL CHECK (cash_received >= 0),
+      change_amount REAL CHECK (change_amount >= 0),
+      client_transaction_id TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -53,6 +56,7 @@ async function initializeDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       sale_id INTEGER NOT NULL REFERENCES sales(id),
       product_id INTEGER NOT NULL REFERENCES products(id),
+      product_name TEXT,
       quantity INTEGER NOT NULL CHECK (quantity > 0),
       unit_price REAL NOT NULL CHECK (unit_price >= 0)
     );
@@ -60,6 +64,21 @@ async function initializeDatabase() {
   if (!hasColumn('products', 'active')) {
     database.run('ALTER TABLE products ADD COLUMN active INTEGER NOT NULL DEFAULT 1');
   }
+  for (const [table, column, definition] of [
+    ['sales', 'cash_received', 'REAL'],
+    ['sales', 'change_amount', 'REAL'],
+    ['sales', 'client_transaction_id', 'TEXT'],
+    ['sale_items', 'product_name', 'TEXT'],
+  ]) {
+    if (!hasColumn(table, column)) database.run(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
+  database.run(`
+    UPDATE sale_items SET product_name = (
+      SELECT name FROM products WHERE products.id = sale_items.product_id
+    ) WHERE product_name IS NULL;
+    CREATE UNIQUE INDEX IF NOT EXISTS sales_client_transaction_id_idx
+      ON sales(client_transaction_id);
+  `);
   persistDatabase();
   return database;
 }
