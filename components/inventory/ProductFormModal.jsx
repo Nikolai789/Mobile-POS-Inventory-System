@@ -21,7 +21,7 @@ export default function ProductFormModal({ visible, product, form, saving, onCha
         />
         <TextInput
           style={styles.formInput}
-          placeholder="Price"
+          placeholder="Price (PHP)"
           keyboardType="decimal-pad"
           value={form.price}
           onChangeText={(price) => onChange({ price })}

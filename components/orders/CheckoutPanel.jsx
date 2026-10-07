@@ -43,7 +43,7 @@ export default function CheckoutPanel({
         );
       })}
       <View style={styles.totalRow}><Text style={styles.totalText}>Total</Text><Text style={styles.totalText}>{formatMoney(totalCents / 100)}</Text></View>
-      <Text style={styles.label}>Cash received</Text>
+      <Text style={styles.label}>Cash received (PHP)</Text>
       <TextInput
         accessibilityLabel="Cash received"
         style={styles.cashInput}

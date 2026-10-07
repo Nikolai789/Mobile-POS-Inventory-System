@@ -1,11 +1,12 @@
 import { Button, StyleSheet, Text, View } from 'react-native';
+import { formatMoney } from '../../frontend/utils/money';
 
 export default function ProductRow({ product, deleting, onEdit, onArchive }) {
   return (
     <View style={styles.row}>
       <View style={styles.productInfo}>
         <Text style={styles.name}>{product.name}</Text>
-        <Text>{product.barcode}  ${product.price.toFixed(2)}  |  {product.stock_quantity} in stock</Text>
+        <Text>{product.barcode}  {formatMoney(product.price)}  |  {product.stock_quantity} in stock</Text>
       </View>
       <Button title="Edit" onPress={onEdit} disabled={deleting} />
       <Button
