@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Button, FlatList, Modal, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Button, FlatList, StyleSheet, Text } from 'react-native';
 import { archiveProduct, createProduct, getProducts, updateProduct } from '../api/client';
+import InventoryHeader from '../../components/inventory/InventoryHeader';
+import InventoryLoadingState from '../../components/inventory/InventoryLoadingState';
+import ProductFormModal from '../../components/inventory/ProductFormModal';
+import ProductRow from '../../components/inventory/ProductRow';
 
 const emptyForm = { name: '', barcode: '', price: '', stock_quantity: '' };
 
@@ -39,6 +43,10 @@ export default function InventoryScreen() {
     } : emptyForm);
     setError('');
     setModalVisible(true);
+  }
+
+  function updateForm(changes) {
+    setForm((current) => ({ ...current, ...changes }));
   }
 
   async function saveProduct() {
@@ -80,7 +88,7 @@ export default function InventoryScreen() {
     }
   }
 
-  if (loading) return <View style={styles.center}><ActivityIndicator size="large" /><Text>Loading inventory...</Text></View>;
+  if (loading) return <InventoryLoadingState />;
 
   return (
     <>
@@ -88,39 +96,30 @@ export default function InventoryScreen() {
         contentContainerStyle={styles.container}
         data={products}
         keyExtractor={(item) => String(item.id)}
-        ListHeaderComponent={<><View style={styles.header}><Text style={styles.title}>Inventory</Text><Button title="Add product" onPress={() => openForm()} /></View>{error ? <Text style={styles.error}>{error}</Text> : null}</>}
+        ListHeaderComponent={<><InventoryHeader onAddProduct={() => openForm()} />{error ? <Text style={styles.error}>{error}</Text> : null}</>}
         ListEmptyComponent={<Text>No products have been added yet.</Text>}
-        renderItem={({ item }) => <View style={styles.row}>
-          <View style={styles.productInfo}><Text style={styles.name}>{item.name}</Text><Text>{item.barcode}  ${item.price.toFixed(2)}  |  {item.stock_quantity} in stock</Text></View>
-          <Button title="Edit" onPress={() => openForm(item)} disabled={Boolean(deletingId)} />
-          <Button title={deletingId === item.id ? '...' : 'Archive'} onPress={() => confirmArchive(item)} disabled={Boolean(deletingId)} color="#b00020" />
-        </View>}
+        renderItem={({ item }) => <ProductRow
+          product={item}
+          deleting={Boolean(deletingId)}
+          onEdit={() => openForm(item)}
+          onArchive={() => confirmArchive(item)}
+        />}
         ListFooterComponent={<Button title="Refresh" onPress={loadProducts} />}
       />
-      <Modal visible={modalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}>
-      <View style={styles.modal}>
-        <Text style={styles.title}>{selectedProduct ? 'Edit product' : 'Add product'}</Text>
-        <TextInput style={styles.formInput} placeholder="Name" value={form.name} onChangeText={(name) => setForm({ ...form, name })} />
-        <TextInput style={styles.formInput} placeholder="Barcode" value={form.barcode} onChangeText={(barcode) => setForm({ ...form, barcode })} />
-        <TextInput style={styles.formInput} placeholder="Price" keyboardType="decimal-pad" value={form.price} onChangeText={(price) => setForm({ ...form, price })} />
-        <TextInput style={styles.formInput} placeholder="Stock quantity" keyboardType="number-pad" value={form.stock_quantity} onChangeText={(stock_quantity) => setForm({ ...form, stock_quantity })} />
-        <Button title={saving ? 'Saving...' : 'Save'} onPress={saveProduct} disabled={saving} />
-        <Button title="Cancel" onPress={() => setModalVisible(false)} disabled={saving} />
-      </View>
-      </Modal>
+      <ProductFormModal
+        visible={modalVisible}
+        product={selectedProduct}
+        form={form}
+        saving={saving}
+        onChange={updateForm}
+        onSave={saveProduct}
+        onClose={() => setModalVisible(false)}
+      />
     </>
   );
 }
 
 const styles = StyleSheet.create({
   container: { padding: 20, gap: 14 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: 28, fontWeight: '700' },
   error: { color: '#b00020' },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#ddd' },
-  productInfo: { flex: 1 },
-  name: { fontSize: 17, fontWeight: '600' },
-  modal: { flex: 1, padding: 20, gap: 14, justifyContent: 'center' },
-  formInput: { borderWidth: 1, borderColor: '#aaa', borderRadius: 4, padding: 12 },
 });
