@@ -36,6 +36,15 @@ export const lookupProducts = async (ids) => {
   return results.flat();
 };
 
+export const getProductByBarcode = (barcode) => apiRequest(
+  `/products/by-barcode?value=${encodeURIComponent(barcode)}`,
+);
+
+export const restoreProduct = (id, product) => apiRequest(`/products/${id}/restore`, {
+  method: 'PATCH',
+  body: JSON.stringify(product),
+});
+
 export const createProduct = (product) => apiRequest('/products', {
   method: 'POST',
   body: JSON.stringify(product),

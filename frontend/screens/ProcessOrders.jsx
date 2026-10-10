@@ -1,14 +1,15 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import * as Crypto from 'expo-crypto';
-import { ActivityIndicator, Button, FlatList, StyleSheet, Text } from 'react-native';
-import { createSale, lookupProducts } from '../api/client';
+import { Button, FlatList, StyleSheet, Text } from 'react-native';
+import { createSale, getProductByBarcode, lookupProducts } from '../api/client';
 import useProductCatalog from '../hooks/useProductCatalog';
 import { moneyCents, parseCashCents } from '../utils/money';
 import AvailableProductRow from '../../components/orders/AvailableProductRow';
 import CheckoutPanel from '../../components/orders/CheckoutPanel';
 import OrdersHeader from '../../components/orders/OrdersHeader';
 import ReceiptModal from '../../components/orders/ReceiptModal';
+import BarcodeScannerModal from '../../components/products/BarcodeScannerModal';
 
 export default function ProcessOrders() {
   const catalog = useProductCatalog(true, true);
@@ -21,12 +22,17 @@ export default function ProcessOrders() {
   const [error, setError] = useState('');
   const [pendingSale, setPendingSale] = useState(null);
   const [receipt, setReceipt] = useState(null);
+  const [scannerVisible, setScannerVisible] = useState(false);
+  const [scanBusy, setScanBusy] = useState(false);
+  const [scanFeedback, setScanFeedback] = useState('');
+  const [scanRetryCode, setScanRetryCode] = useState('');
   const submittingRef = useRef(false);
   const cartRef = useRef(cart);
   cartRef.current = cart;
   const pendingSaleRef = useRef(pendingSale);
   pendingSaleRef.current = pendingSale;
   const lookupSequence = useRef(0);
+  const scanRequestSequence = useRef(0);
 
   const refreshCart = useCallback(async (force = false) => {
     const ids = Object.keys(cartRef.current).map(Number);
@@ -55,7 +61,15 @@ export default function ProcessOrders() {
     }
   }, []);
 
-  useFocusEffect(useCallback(() => { catalog.refresh(); refreshCart(); }, [catalog.refresh, refreshCart]));
+  useFocusEffect(useCallback(() => {
+    catalog.refresh();
+    refreshCart();
+    return () => {
+      scanRequestSequence.current += 1;
+      setScannerVisible(false);
+      setScanBusy(false);
+    };
+  }, [catalog.refresh, refreshCart]));
 
   const cartItems = useMemo(() => Object.values(cart), [cart]);
   const productById = useMemo(() => new Map(cartItems
@@ -95,6 +109,47 @@ export default function ProcessOrders() {
     setError('');
   }
 
+  function closeScanner() {
+    scanRequestSequence.current += 1;
+    setScannerVisible(false);
+    setScanBusy(false);
+    setScanRetryCode('');
+  }
+
+  async function handleScannedBarcode(barcode) {
+    if (pendingSaleRef.current || submittingRef.current) return;
+    const request = ++scanRequestSequence.current;
+    setScanBusy(true);
+    setScanRetryCode('');
+    setScanFeedback(`Checking ${barcode}...`);
+    try {
+      const product = await getProductByBarcode(barcode);
+      if (request !== scanRequestSequence.current || pendingSaleRef.current || submittingRef.current) return;
+      if (!product.active) {
+        setScanFeedback('This product is archived. Restore it in Inventory before selling it.');
+      } else if (product.stock_quantity <= 0) {
+        setScanFeedback(`${product.name} is out of stock.`);
+      } else {
+        const selectedQuantity = Number(cartRef.current[product.id]?.quantity || 0);
+        if (selectedQuantity >= product.stock_quantity) {
+          setScanFeedback(`${product.name} has reached its available stock in this cart.`);
+        } else {
+          addProduct(product);
+          setScanFeedback(`${product.name} added to the cart. Quantity: ${selectedQuantity + 1}.`);
+        }
+      }
+    } catch (requestError) {
+      if (request !== scanRequestSequence.current) return;
+      if (requestError.status === 404) setScanFeedback('This barcode is not in Inventory. The cart is unchanged.');
+      else {
+        setScanFeedback(requestError.message);
+        setScanRetryCode(barcode);
+      }
+    } finally {
+      if (request === scanRequestSequence.current) setScanBusy(false);
+    }
+  }
+
   function changeQuantity(id, quantity) {
     if (pendingSale || !/^\d*$/.test(quantity)) return;
     setCart((current) => ({ ...current, [id]: { ...current[id], quantity } }));
@@ -123,6 +178,7 @@ export default function ProcessOrders() {
 
   async function finalizeSale() {
     if (submittingRef.current || (!pendingSale && !canFinalize)) return;
+    closeScanner();
     submittingRef.current = true;
     setSubmitting(true);
     setError('');
@@ -179,6 +235,11 @@ export default function ProcessOrders() {
           loading={catalog.loading}
           submitting={submitting}
           onRefresh={() => { catalog.refresh(); refreshCart(); }}
+          onScanBarcode={() => {
+            setScanFeedback('');
+            setScanRetryCode('');
+            setScannerVisible(true);
+          }}
         />}
         ListEmptyComponent={!catalog.loading && !catalog.error
           ? <Text style={styles.muted}>{catalog.query ? 'No matching in-stock products.' : 'search a product.'}</Text> : null}
@@ -215,6 +276,16 @@ export default function ProcessOrders() {
         </>}
       />
       <ReceiptModal receipt={receipt} onClose={() => setReceipt(null)} />
+      {scannerVisible ? <BarcodeScannerModal
+        visible={scannerVisible}
+        onClose={closeScanner}
+        onScan={handleScannedBarcode}
+        onScanNext={() => { setScanFeedback(''); setScanRetryCode(''); }}
+        feedback={scanFeedback}
+        busy={scanBusy}
+        retryCode={scanRetryCode}
+        onRetry={() => handleScannedBarcode(scanRetryCode)}
+      /> : null}
     </>
   );
 }

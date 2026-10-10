@@ -1,12 +1,13 @@
 import { Button, Modal, StyleSheet, Text, TextInput, View } from 'react-native';
 
-export default function ProductFormModal({ visible, product, form, saving, onChange, onSave, onClose }) {
-  const title = product ? 'Edit product' : 'Add product';
+export default function ProductFormModal({ visible, mode, form, saving, error, onChange, onSave, onClose }) {
+  const title = mode === 'restore' ? 'Restore product' : mode === 'edit' ? 'Edit product' : 'Add product';
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={styles.modal}>
         <Text style={styles.title}>{title}</Text>
+        {mode === 'restore' ? <Text>Enter the current stock quantity before restoring this product.</Text> : null}
         <TextInput
           style={styles.formInput}
           placeholder="Name"
@@ -33,7 +34,8 @@ export default function ProductFormModal({ visible, product, form, saving, onCha
           value={form.stock_quantity}
           onChangeText={(stock_quantity) => onChange({ stock_quantity })}
         />
-        <Button title={saving ? 'Saving...' : 'Save'} onPress={onSave} disabled={saving} />
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+        <Button title={saving ? 'Saving...' : mode === 'restore' ? 'Restore product' : 'Save'} onPress={onSave} disabled={saving} />
         <Button title="Cancel" onPress={onClose} disabled={saving} />
       </View>
     </Modal>
@@ -57,5 +59,6 @@ const styles = StyleSheet.create({
       borderRadius: 4, 
       padding: 12 
     },
+    error: { color: '#b00020' },
   }
 );

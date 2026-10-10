@@ -1,19 +1,26 @@
 import { Button, StyleSheet, Text, View } from 'react-native';
 
-export default function InventoryHeader({ onAddProduct }) {
+export default function InventoryHeader({ onAddProduct, onScanBarcode, scanDisabled }) {
   return (
     <View style={styles.header}>
       <Text style={styles.title}>Inventory</Text>
-      <Button title="Add product" onPress={onAddProduct} />
+      <View style={styles.actions}>
+        <Button title="Add product" onPress={onAddProduct} />
+        <Button title="Scan barcode" onPress={onScanBarcode} disabled={scanDisabled} />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
     header: { 
+      gap: 8 
+    },
+    actions: { 
       flexDirection: 'row', 
+      flexWrap: 'wrap', 
       alignItems: 'center', 
-      justifyContent: 'space-between' 
+      gap: 8 
     },
     title: { 
       fontSize: 28, 
