@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const initSqlJs = require('sql.js');
+const { replaceNameTokens } = require('./services/productSearchTokens');
 
 const databasePath = process.env.DATABASE_PATH || path.join(__dirname, 'pos.sqlite');
 let database;
@@ -60,6 +61,13 @@ async function initializeDatabase() {
       quantity INTEGER NOT NULL CHECK (quantity > 0),
       unit_price REAL NOT NULL CHECK (unit_price >= 0)
     );
+
+    CREATE TABLE IF NOT EXISTS product_search_tokens (
+      product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      token TEXT NOT NULL COLLATE NOCASE,
+      PRIMARY KEY (product_id, token)
+    );
+
   `);
   if (!hasColumn('products', 'active')) {
     database.run('ALTER TABLE products ADD COLUMN active INTEGER NOT NULL DEFAULT 1');
@@ -78,7 +86,29 @@ async function initializeDatabase() {
     ) WHERE product_name IS NULL;
     CREATE UNIQUE INDEX IF NOT EXISTS sales_client_transaction_id_idx
       ON sales(client_transaction_id);
+    CREATE INDEX IF NOT EXISTS product_search_tokens_token_idx
+      ON product_search_tokens(token, product_id);
+    CREATE INDEX IF NOT EXISTS products_active_name_idx
+      ON products(active, name COLLATE NOCASE, id);
+    CREATE INDEX IF NOT EXISTS products_instock_name_idx
+      ON products(name COLLATE NOCASE, id) WHERE active = 1 AND stock_quantity > 0;
+    CREATE INDEX IF NOT EXISTS products_barcode_nocase_idx
+      ON products(barcode COLLATE NOCASE);
   `);
+  const missingTokens = rowsFromResult(database.exec(`
+    SELECT p.id, p.name FROM products p WHERE p.active = 1
+      AND NOT EXISTS (SELECT 1 FROM product_search_tokens t WHERE t.product_id = p.id)
+  `));
+  if (missingTokens.length) {
+    database.run('BEGIN TRANSACTION');
+    try {
+      for (const product of missingTokens) replaceNameTokens(database, product.id, product.name);
+      database.run('COMMIT');
+    } catch (error) {
+      database.run('ROLLBACK');
+      throw error;
+    }
+  }
   persistDatabase();
   return database;
 }

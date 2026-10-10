@@ -2,6 +2,8 @@ const express = require('express');
 const productController = require('../controllers/productController');
 
 const router = express.Router();
+router.get('/search', productController.searchProducts);
+router.get('/lookup', productController.lookupProducts);
 router.get('/', productController.listProducts);
 router.post('/', productController.createProduct);
 router.put('/:id', productController.updateProduct);
