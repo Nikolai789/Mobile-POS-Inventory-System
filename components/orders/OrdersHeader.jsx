@@ -1,16 +1,19 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import ProductSearchBar from '../products/ProductSearchBar';
 
-export default function OrdersHeader({ error, pendingSale, loading, submitting, onRefresh }) {
+export default function OrdersHeader({ error, catalogError, query, onQueryChange, pendingSale, loading, submitting, onRefresh }) {
   return (
     <View style={styles.header}>
       <Text style={styles.title}>Process Orders</Text>
       <Text style={styles.muted}>Select products, then enter the cash received.</Text>
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      {catalogError ? <Text style={styles.error}>{catalogError}</Text> : null}
       {pendingSale ? <Text style={styles.muted}>This sale is awaiting confirmation. Retry it before changing the cart.</Text> : null}
       <Pressable onPress={onRefresh} disabled={loading || submitting} style={styles.linkButton}>
         <Text style={styles.linkText}>{loading ? 'Refreshing products...' : 'Refresh products'}</Text>
       </Pressable>
       <Text style={styles.sectionTitle}>Available products</Text>
+      <ProductSearchBar value={query} onChangeText={onQueryChange} />
       {loading ? <ActivityIndicator accessibilityLabel="Loading products" /> : null}
     </View>
   );
