@@ -10,5 +10,10 @@ export default function InventoryLoadingState() {
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
-});
+    center: { 
+      flex: 1, 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      gap: 10 },
+  }
+);

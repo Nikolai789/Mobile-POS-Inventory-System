@@ -41,7 +41,21 @@ export default function ProductFormModal({ visible, product, form, saving, onCha
 }
 
 const styles = StyleSheet.create({
-  modal: { flex: 1, padding: 20, gap: 14, justifyContent: 'center' },
-  title: { fontSize: 28, fontWeight: '700' },
-  formInput: { borderWidth: 1, borderColor: '#aaa', borderRadius: 4, padding: 12 },
-});
+    modal: { 
+      flex: 1, 
+      padding: 20, 
+      gap: 14, 
+      justifyContent: 'center' 
+    },
+    title: { 
+      fontSize: 28, 
+      fontWeight: '700' 
+    },
+    formInput: { 
+      borderWidth: 1, 
+      borderColor: '#aaa', 
+      borderRadius: 4, 
+      padding: 12 
+    },
+  }
+);

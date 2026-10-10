@@ -20,7 +20,20 @@ export default function ProductRow({ product, deleting, onEdit, onArchive }) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#ddd' },
-  productInfo: { flex: 1 },
-  name: { fontSize: 17, fontWeight: '600' },
-});
+    row: { 
+      flexDirection: 'row', 
+      alignItems: 'center', 
+      gap: 10, 
+      paddingVertical: 12, 
+      borderBottomWidth: 1, 
+      borderBottomColor: '#ddd' 
+    },
+    productInfo: { 
+      flex: 1 
+    },
+    name: { 
+      fontSize: 17, 
+      fontWeight: '600' 
+    },
+  }
+);

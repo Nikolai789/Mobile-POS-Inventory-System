@@ -10,6 +10,14 @@ export default function InventoryHeader({ onAddProduct }) {
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: 28, fontWeight: '700' },
-});
+    header: { 
+      flexDirection: 'row', 
+      alignItems: 'center', 
+      justifyContent: 'space-between' 
+    },
+    title: { 
+      fontSize: 28, 
+      fontWeight: '700' 
+    },
+  }
+);
