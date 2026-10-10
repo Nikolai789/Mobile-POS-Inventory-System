@@ -1,16 +1,17 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Alert, Button, FlatList, StyleSheet, Text } from 'react-native';
-import { archiveProduct, createProduct, getProducts, updateProduct } from '../api/client';
+import { useCallback, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { ActivityIndicator, Alert, Button, FlatList, StyleSheet, Text } from 'react-native';
+import { archiveProduct, createProduct, updateProduct } from '../api/client';
+import useProductCatalog from '../hooks/useProductCatalog';
 import InventoryHeader from '../../components/inventory/InventoryHeader';
-import InventoryLoadingState from '../../components/inventory/InventoryLoadingState';
 import ProductFormModal from '../../components/inventory/ProductFormModal';
 import ProductRow from '../../components/inventory/ProductRow';
+import ProductSearchBar from '../../components/products/ProductSearchBar';
 
 const emptyForm = { name: '', barcode: '', price: '', stock_quantity: '' };
 
 export default function InventoryScreen() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const catalog = useProductCatalog();
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
@@ -18,20 +19,7 @@ export default function InventoryScreen() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const loadProducts = useCallback(async () => {
-    console.log('Loading products...');
-    setLoading(true);
-    setError('');
-    try {
-      setProducts(await getProducts());
-    } catch (requestError) {
-      setError(requestError.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { Promise.resolve().then(loadProducts); }, [loadProducts]);
+  useFocusEffect(useCallback(() => { catalog.refresh(); }, [catalog.refresh]));
 
   function openForm(product = null) {
     setSelectedProduct(product);
@@ -54,12 +42,10 @@ export default function InventoryScreen() {
     setError('');
     try {
       const payload = { ...form, price: Number(form.price), stock_quantity: Number(form.stock_quantity) };
-      const savedProduct = selectedProduct
+      selectedProduct
         ? await updateProduct(selectedProduct.id, payload)
         : await createProduct(payload);
-      setProducts((current) => selectedProduct
-        ? current.map((item) => item.id === savedProduct.id ? savedProduct : item)
-        : [...current, savedProduct].sort((first, second) => first.name.localeCompare(second.name)));
+      catalog.refresh();
       setModalVisible(false);
     } catch (requestError) {
       setError(requestError.message);
@@ -80,7 +66,7 @@ export default function InventoryScreen() {
     setError('');
     try {
       await archiveProduct(productId);
-      setProducts((current) => current.filter((product) => product.id !== productId));
+      catalog.refresh();
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -88,23 +74,33 @@ export default function InventoryScreen() {
     }
   }
 
-  if (loading) return <InventoryLoadingState />;
-
   return (
     <>
       <FlatList
         contentContainerStyle={styles.container}
-        data={products}
+        data={catalog.loading ? [] : catalog.items}
         keyExtractor={(item) => String(item.id)}
-        ListHeaderComponent={<><InventoryHeader onAddProduct={() => openForm()} />{error ? <Text style={styles.error}>{error}</Text> : null}</>}
-        ListEmptyComponent={<Text>No products have been added yet.</Text>}
+        ListHeaderComponent={<>
+          <InventoryHeader onAddProduct={() => openForm()} />
+          <ProductSearchBar value={catalog.query} onChangeText={catalog.setQuery} />
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          {catalog.error ? <Text style={styles.error}>{catalog.error}</Text> : null}
+          {catalog.loading ? <ActivityIndicator accessibilityLabel="Loading inventory" /> : null}
+        </>}
+        ListEmptyComponent={!catalog.loading && !catalog.error
+          ? <Text>{catalog.query ? 'No matching products.' : 'No products have been added yet.'}</Text> : null}
         renderItem={({ item }) => <ProductRow
           product={item}
           deleting={Boolean(deletingId)}
           onEdit={() => openForm(item)}
           onArchive={() => confirmArchive(item)}
         />}
-        ListFooterComponent={<Button title="Refresh" onPress={loadProducts} />}
+        onEndReached={catalog.loadMore}
+        onEndReachedThreshold={0.4}
+        ListFooterComponent={<>
+          {catalog.loadingMore ? <ActivityIndicator accessibilityLabel="Loading more products" /> : null}
+          <Button title="Refresh" onPress={catalog.refresh} />
+        </>}
       />
       <ProductFormModal
         visible={modalVisible}
