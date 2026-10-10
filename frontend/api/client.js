@@ -24,6 +24,27 @@ export async function apiRequest(path, options = {}) {
 
 export const getProducts = () => apiRequest('/products');
 
+export const searchProducts = ({ q = '', limit = 30, offset = 0, inStock = false }, signal) => {
+  const params = `q=${encodeURIComponent(q)}&limit=${limit}&offset=${offset}&in_stock=${inStock ? '1' : '0'}`;
+  return apiRequest(`/products/search?${params}`, { signal });
+};
+
+export const lookupProducts = async (ids) => {
+  const groups = [];
+  for (let offset = 0; offset < ids.length; offset += 100) groups.push(ids.slice(offset, offset + 100));
+  const results = await Promise.all(groups.map((group) => apiRequest(`/products/lookup?ids=${group.join(',')}`)));
+  return results.flat();
+};
+
+export const getProductByBarcode = (barcode) => apiRequest(
+  `/products/by-barcode?value=${encodeURIComponent(barcode)}`,
+);
+
+export const restoreProduct = (id, product) => apiRequest(`/products/${id}/restore`, {
+  method: 'PATCH',
+  body: JSON.stringify(product),
+});
+
 export const createProduct = (product) => apiRequest('/products', {
   method: 'POST',
   body: JSON.stringify(product),

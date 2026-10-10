@@ -25,16 +25,51 @@ export default function ReceiptView({ receipt }) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1 },
-  content: { padding: 20, gap: 12 },
-  title: { fontSize: 26, fontWeight: '700' },
-  date: { color: '#555' },
-  divider: { height: 1, backgroundColor: '#ddd', marginVertical: 5 },
-  item: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
-  itemInfo: { flex: 1 },
-  name: { fontSize: 16, fontWeight: '600' },
-  muted: { color: '#555' },
-  amount: { fontWeight: '600' },
-  row: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
-  total: { fontSize: 20, fontWeight: '700' },
-});
+    scroll: { 
+      flex: 1 
+    },
+    content: { 
+      padding: 20, 
+      gap: 12 
+    },
+    title: { 
+      fontSize: 26, 
+      fontWeight: '700' 
+    },
+    date: { 
+      color: '#555' 
+    },
+    divider: { 
+      height: 1, 
+      backgroundColor: '#ddd', 
+      marginVertical: 5 
+    },
+    item: { 
+      flexDirection: 'row', 
+      justifyContent: 'space-between', 
+      gap: 12 
+    },
+    itemInfo: { 
+      flex: 1 
+    },
+    name: { 
+      fontSize: 16, 
+      fontWeight: '600' 
+    },
+    muted: { 
+      color: '#555' 
+    },
+    amount: { 
+      fontWeight: '600' 
+    },
+    row: { 
+      flexDirection: 'row', 
+      justifyContent: 'space-between', 
+      gap: 12 
+    },
+    total: { 
+      fontSize: 20, 
+      fontWeight: '700' 
+    },
+  }
+);
