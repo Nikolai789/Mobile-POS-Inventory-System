@@ -25,18 +25,49 @@ function inTransaction(database, operation) {
   }
 }
 
+function barcodeCandidates(barcode) {
+  const values = [barcode];
+  if (/^0\d{12}$/.test(barcode)) values.push(barcode.slice(1));
+  else if (/^\d{12}$/.test(barcode)) values.push(`0${barcode}`);
+  return values;
+}
+
+function ensureBarcodeAvailable(database, barcode, exceptId = null) {
+  const candidates = barcodeCandidates(barcode);
+  const match = rowsFromResult(database.exec(`
+    SELECT id FROM products WHERE barcode IN (${candidates.map(() => '?').join(', ')})
+      ${exceptId == null ? '' : 'AND id != ?'} LIMIT 1
+  `, exceptId == null ? candidates : [...candidates, exceptId]))[0];
+  if (match) throw productError('Barcode already belongs to another product', 409);
+}
+
 function validateProduct(input = {}) {
   const name = typeof input.name === 'string' ? input.name.trim() : '';
   const barcode = typeof input.barcode === 'string' ? input.barcode.trim() : '';
+  const hasPrice = input.price != null && String(input.price).trim() !== '';
+  const hasStock = input.stock_quantity != null && String(input.stock_quantity).trim() !== '';
   const price = Number(input.price);
   const stockQuantity = Number(input.stock_quantity);
-  if (!name || !barcode || !Number.isFinite(price) || price < 0
-    || !Number.isInteger(stockQuantity) || stockQuantity < 0) {
-    const error = new Error('name, barcode, non-negative price, and stock_quantity are required');
+  if (!name || !barcode || !hasPrice || !hasStock || !Number.isFinite(price) || price < 0
+    || !Number.isSafeInteger(Math.round(price * 100))
+    || Math.abs(price - Math.round(price * 100) / 100) > 0.00000001
+    || !Number.isSafeInteger(stockQuantity) || stockQuantity < 0) {
+    const error = new Error('Name, barcode, PHP price (up to two decimals), and whole-number stock quantity are required');
     error.statusCode = 400;
     throw error;
   }
   return { name, barcode, price, stockQuantity };
+}
+
+function getProductByBarcode(value) {
+  const barcode = typeof value === 'string' ? value.trim() : '';
+  if (!barcode) throw productError('Barcode is required');
+  const candidates = barcodeCandidates(barcode);
+  for (const candidate of candidates) {
+    const product = productRows(`SELECT ${productFields}, active FROM products WHERE barcode = ?`, [candidate])[0];
+    if (product) return product;
+  }
+  throw productError('Barcode not found', 404);
 }
 
 function getProduct(id, includeInactive = false) {
@@ -108,6 +139,7 @@ function createProduct(input) {
   let productId;
   try {
     productId = inTransaction(database, () => {
+      ensureBarcodeAvailable(database, product.barcode);
       database.run(
         'INSERT INTO products (name, barcode, price, stock_quantity) VALUES (?, ?, ?, ?)',
         [product.name, product.barcode, product.price, product.stockQuantity],
@@ -117,7 +149,7 @@ function createProduct(input) {
       return id;
     });
   } catch (error) {
-    error.statusCode = error.message.includes('UNIQUE') ? 409 : 400;
+    if (!error.statusCode) error.statusCode = error.message.includes('UNIQUE') ? 409 : 400;
     throw error;
   }
   persistDatabase();
@@ -135,6 +167,7 @@ function updateProduct(id, input) {
   }
   try {
     inTransaction(database, () => {
+      ensureBarcodeAvailable(database, product.barcode, id);
       database.run(
         'UPDATE products SET name = ?, barcode = ?, price = ?, stock_quantity = ? WHERE id = ? AND active = 1',
         [product.name, product.barcode, product.price, product.stockQuantity, id],
@@ -142,11 +175,35 @@ function updateProduct(id, input) {
       if (existing.name !== product.name) replaceNameTokens(database, id, product.name);
     });
   } catch (error) {
-    error.statusCode = error.message.includes('UNIQUE') ? 409 : 400;
+    if (!error.statusCode) error.statusCode = error.message.includes('UNIQUE') ? 409 : 400;
     throw error;
   }
   persistDatabase();
   return getProduct(id);
+}
+
+function restoreProduct(id, input) {
+  const product = validateProduct(input);
+  const database = getDatabase();
+  const existing = getProduct(id, true);
+  if (!existing) throw productError('Product not found', 404);
+  if (getProduct(id)) throw productError('Product is already active', 409);
+  try {
+    inTransaction(database, () => {
+      ensureBarcodeAvailable(database, product.barcode, id);
+      database.run(`
+        UPDATE products SET name = ?, barcode = ?, price = ?, stock_quantity = ?, active = 1
+        WHERE id = ? AND active = 0
+      `, [product.name, product.barcode, product.price, product.stockQuantity, id]);
+      if (database.getRowsModified() !== 1) throw productError('Product is already active', 409);
+      replaceNameTokens(database, id, product.name);
+    });
+  } catch (error) {
+    if (!error.statusCode) error.statusCode = error.message.includes('UNIQUE') ? 409 : 400;
+    throw error;
+  }
+  persistDatabase();
+  return { ...getProduct(id), active: 1 };
 }
 
 function updateStock(id, stockQuantity) {
@@ -170,5 +227,6 @@ function archiveProduct(id) {
 }
 
 module.exports = {
-  archiveProduct, createProduct, listProducts, lookupProducts, searchProducts, updateProduct, updateStock,
+  archiveProduct, createProduct, getProductByBarcode, listProducts, lookupProducts,
+  restoreProduct, searchProducts, updateProduct, updateStock,
 };
