@@ -10,6 +10,7 @@ router.post('/', productController.createProduct);
 router.put('/:id', productController.updateProduct);
 router.patch('/:id/stock', productController.updateStock);
 router.patch('/:id/restore', productController.restoreProduct);
+router.delete('/:id/permanent', productController.deleteArchivedProduct);
 router.delete('/:id', productController.archiveProduct);
 
 module.exports = router;

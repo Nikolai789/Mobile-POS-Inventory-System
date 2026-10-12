@@ -44,7 +44,11 @@ function archiveProduct(req, res) {
   try { productService.archiveProduct(Number(req.params.id)); return res.status(204).send(); } catch (error) { return handleError(error, res); }
 }
 
+function deleteArchivedProduct(req, res) {
+  try { productService.deleteArchivedProduct(Number(req.params.id)); return res.status(204).send(); } catch (error) { return handleError(error, res); }
+}
+
 module.exports = {
-  archiveProduct, createProduct, getProductByBarcode, listProducts, lookupProducts,
+  archiveProduct, createProduct, deleteArchivedProduct, getProductByBarcode, listProducts, lookupProducts,
   restoreProduct, searchProducts, updateProduct, updateStock,
 };
