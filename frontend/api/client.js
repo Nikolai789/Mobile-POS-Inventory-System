@@ -24,8 +24,8 @@ export async function apiRequest(path, options = {}) {
 
 export const getProducts = () => apiRequest('/products');
 
-export const searchProducts = ({ q = '', limit = 30, offset = 0, inStock = false }, signal) => {
-  const params = `q=${encodeURIComponent(q)}&limit=${limit}&offset=${offset}&in_stock=${inStock ? '1' : '0'}`;
+export const searchProducts = ({ q = '', limit = 30, offset = 0, inStock = false, status = 'active' }, signal) => {
+  const params = `q=${encodeURIComponent(q)}&limit=${limit}&offset=${offset}&in_stock=${inStock ? '1' : '0'}&status=${status}`;
   return apiRequest(`/products/search?${params}`, { signal });
 };
 
@@ -59,6 +59,10 @@ export const archiveProduct = (id) => apiRequest(`/products/${id}`, {
   method: 'DELETE',
 });
 
+export const deleteArchivedProduct = (id) => apiRequest(`/products/${id}/permanent`, {
+  method: 'DELETE',
+});
+
 export const updateStock = (id, stock_quantity) => apiRequest(`/products/${id}/stock`, {
   method: 'PATCH',
   body: JSON.stringify({ stock_quantity }),
@@ -72,3 +76,5 @@ export const createSale = (sale) => apiRequest('/sales', {
 export const getSales = () => apiRequest('/sales');
 
 export const getSale = (id) => apiRequest(`/sales/${id}`);
+
+export const getDashboard = () => apiRequest('/dashboard');
