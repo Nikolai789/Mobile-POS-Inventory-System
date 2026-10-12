@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
         color: '#1759a7', 
         fontWeight: '600' 
     },
-    scanButton: { alignSelf: 'flex-start', backgroundColor: '#1759a7', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12 },
+    scanButton: { alignSelf: 'flex-start', backgroundColor: '#17663c', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12 },
     scanText: { color: '#fff', fontWeight: '700' },
     disabled: { opacity: 0.45 },
   }

@@ -223,6 +223,7 @@ export default function ProcessOrders() {
     <>
       <FlatList
         style={styles.screen}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.content}
         data={catalog.loading ? [] : catalog.items}
         keyExtractor={(product) => String(product.id)}

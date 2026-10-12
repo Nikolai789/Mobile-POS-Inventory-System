@@ -1,16 +1,18 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-export default function ProductSearchBar({ value, onChangeText }) {
+export default function ProductSearchBar({ value, onChangeText,
+  accessibilityLabel = 'Search products by name or barcode', placeholder = 'Search name or barcode' }) {
   return (
     <View style={styles.row}>
       <TextInput
-        accessibilityLabel="Search products by name or barcode"
+        accessibilityLabel={accessibilityLabel}
         autoCapitalize="none"
         autoCorrect={false}
         clearButtonMode="never"
         onChangeText={onChangeText}
-        placeholder="Search name or barcode"
+        placeholder={placeholder}
         returnKeyType="search"
+        submitBehavior="blurAndSubmit"
         style={styles.input}
         value={value}
       />
