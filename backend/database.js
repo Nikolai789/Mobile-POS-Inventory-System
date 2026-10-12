@@ -94,10 +94,16 @@ async function initializeDatabase() {
       ON products(name COLLATE NOCASE, id) WHERE active = 1 AND stock_quantity > 0;
     CREATE INDEX IF NOT EXISTS products_barcode_nocase_idx
       ON products(barcode COLLATE NOCASE);
+    CREATE INDEX IF NOT EXISTS products_dashboard_low_stock_idx
+      ON products(stock_quantity, name COLLATE NOCASE, id) WHERE active = 1;
+    CREATE INDEX IF NOT EXISTS sales_dashboard_created_at_idx
+      ON sales(created_at DESC, id DESC);
+    CREATE INDEX IF NOT EXISTS sale_items_product_id_idx
+      ON sale_items(product_id);
   `);
   const missingTokens = rowsFromResult(database.exec(`
-    SELECT p.id, p.name FROM products p WHERE p.active = 1
-      AND NOT EXISTS (SELECT 1 FROM product_search_tokens t WHERE t.product_id = p.id)
+    SELECT p.id, p.name FROM products p
+    WHERE NOT EXISTS (SELECT 1 FROM product_search_tokens t WHERE t.product_id = p.id)
   `));
   if (missingTokens.length) {
     database.run('BEGIN TRANSACTION');
