@@ -60,6 +60,24 @@ test('product search migrates, pages, filters, and follows product changes', asy
     products.archiveProduct(renamed.id);
     assert.equal((await get('/search?q=drink')).body.items.length, 0);
     assert.equal((await get('/lookup?ids=1,2')).body.length, 1);
+    assert.deepEqual((await get('/search?q=drink&status=archived')).body.items.map((item) => item.id), [renamed.id]);
+    assert.deepEqual((await get('/search?q=oat-&status=archived')).body.items.map((item) => item.id), [renamed.id]);
+    assert.equal((await get('/search?status=archived&in_stock=1')).status, 400);
+    assert.equal((await get('/search?status=deleted')).status, 400);
+    products.archiveProduct(fresh.id);
+    const archivedFirst = (await get('/search?status=archived&limit=1')).body;
+    const archivedSecond = (await get(`/search?status=archived&limit=1&offset=${archivedFirst.next_offset}`)).body;
+    assert.deepEqual([archivedFirst.items.length, archivedSecond.items.length, archivedSecond.next_offset], [1, 1, null]);
+    assert.deepEqual(new Set([archivedFirst.items[0].id, archivedSecond.items[0].id]),
+      new Set([renamed.id, fresh.id]));
+    products.restoreProduct(renamed.id, { ...renamed, stock_quantity: 7 });
+    assert.deepEqual((await get('/search?q=drink')).body.items.map((item) => item.id), [renamed.id]);
+    assert.equal((await get('/search?q=drink&status=archived')).body.items.length, 0);
+    products.archiveProduct(renamed.id);
+    getDatabase().run('DELETE FROM product_search_tokens WHERE product_id = ?', [renamed.id]);
+    persistDatabase();
+    await initializeDatabase();
+    assert.deepEqual((await get('/search?q=drink&status=archived')).body.items.map((item) => item.id), [renamed.id]);
     assert.equal((await get('/lookup?ids=1,abc')).status, 400);
 
     getDatabase().run('BEGIN TRANSACTION');

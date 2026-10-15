@@ -3,6 +3,7 @@ const cors = require('cors');
 const { initializeDatabase } = require('./database');
 const productRoutes = require('./routes/productRoutes');
 const saleRoutes = require('./routes/saleRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 const app = express();
 const port = Number(process.env.PORT || 5000);
@@ -12,6 +13,7 @@ app.use(express.json());
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/products', productRoutes);
 app.use('/api/sales', saleRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 initializeDatabase()
   .then(() => app.listen(port, '0.0.0.0', () => {

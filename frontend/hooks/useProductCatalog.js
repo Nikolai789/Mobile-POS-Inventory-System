@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { searchProducts } from '../api/client';
 
-export default function useProductCatalog(inStock = false, searchOnly = false) {
+export default function useProductCatalog(inStock = false, searchOnly = false, status = 'active') {
   const [query, setQuery] = useState('');
   const [resultsQuery, setResultsQuery] = useState(null);
   const [items, setItems] = useState([]);
@@ -35,7 +35,7 @@ export default function useProductCatalog(inStock = false, searchOnly = false) {
       };
     }
     const timer = setTimeout(() => {
-      searchProducts({ q: query, inStock }, controller.signal).then((result) => {
+      searchProducts({ q: query, inStock, status }, controller.signal).then((result) => {
         if (request !== sequence.current) return;
         setItems(result.items);
         setNextOffset(result.next_offset);
@@ -53,7 +53,7 @@ export default function useProductCatalog(inStock = false, searchOnly = false) {
       controller.abort();
       sequence.current += 1;
     };
-  }, [query, inStock, revision, searchOnly]);
+  }, [query, inStock, revision, searchOnly, status]);
 
   const refresh = useCallback(() => setRevision((current) => current + 1), []);
   const loadMore = useCallback(async () => {
@@ -62,7 +62,7 @@ export default function useProductCatalog(inStock = false, searchOnly = false) {
     const request = sequence.current;
     setLoadingMore(true);
     try {
-      const result = await searchProducts({ q: query, inStock, offset: nextOffset });
+      const result = await searchProducts({ q: query, inStock, status, offset: nextOffset });
       if (request !== sequence.current) return;
       setItems((current) => [...current, ...result.items]);
       setNextOffset(result.next_offset);
@@ -74,7 +74,7 @@ export default function useProductCatalog(inStock = false, searchOnly = false) {
         paging.current = false;
       }
     }
-  }, [error, inStock, loading, nextOffset, query, resultsQuery]);
+  }, [error, inStock, loading, nextOffset, query, resultsQuery, status]);
 
   return {
     query, setQuery, items: query === resultsQuery ? items : [],

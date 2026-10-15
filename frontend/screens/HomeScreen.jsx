@@ -1,40 +1,117 @@
-import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Button, FlatList, StyleSheet, Text, View } from 'react-native';
-import { createSale, getProducts } from '../api/client';
-import HeroCard from '../../components/herocard';
-import { fontStyle } from '../../assets/branding/font';
-import ReportCard from '../../components/maincard';
-import { general_layout } from '../../assets/branding/layout';
-import { formatMoney } from '../utils/money';
+import { useCallback, useRef, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { AppState } from 'react-native';
+import { getDashboard, getSale } from '../api/client';
+import DashboardView from '../../components/dashboard/DashboardView';
+import ReceiptModal from '../../components/orders/ReceiptModal';
 
-export default function HomeScreen() {
-  return (
-    <View style={general_layout.layout}>
+const PHILIPPINE_OFFSET_MS = 8 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
-      <Text style={fontStyle.subZenFont1}>Dashboard</Text>
-      <View style={styles.grid}>
-        <HeroCard label="Items Tracked" value={32} color="#84e63c" />
-        <HeroCard label="Expenses" value={formatMoney(321.20)} color="#ecd04f" />
-        <HeroCard label="Low Stock" value={12} color="#ee5252" />
-        <HeroCard label="Low Stock" value={12} color="#ee5252" />
-      </View>
-
-      <ReportCard title= 'Sales Report' rows={[
-        { name: 'Water Bottle', sold: 31, profit: formatMoney(301) },
-        { name: 'Notebook', sold: 12, profit: formatMoney(84) },
-        { name: 'Notebook', sold: 12, profit: formatMoney(84) },
-        { name: 'Notebook', sold: 12, profit: formatMoney(84) }]}
-      ></ReportCard>
-    </View>
-  );
+function timeUntilNextBusinessDay() {
+  const now = Date.now();
+  const nextMidnight = (Math.floor((now + PHILIPPINE_OFFSET_MS) / DAY_MS) + 1) * DAY_MS
+    - PHILIPPINE_OFFSET_MS;
+  return nextMidnight - now + 250;
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: 12,
-  },
-});
+export default function HomeScreen() {
+  const [dashboard, setDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
+  const [receipt, setReceipt] = useState(null);
+  const [receiptLoading, setReceiptLoading] = useState(false);
+  const [receiptError, setReceiptError] = useState('');
+  const hasData = useRef(false);
+  const focused = useRef(false);
+  const dashboardRequest = useRef(0);
+  const receiptRequest = useRef(0);
+
+  const loadDashboard = useCallback(async () => {
+    const request = ++dashboardRequest.current;
+    if (hasData.current) setRefreshing(true);
+    else setLoading(true);
+    setError('');
+    try {
+      const summary = await getDashboard();
+      if (!focused.current || request !== dashboardRequest.current) return;
+      hasData.current = true;
+      setDashboard(summary);
+    } catch (requestError) {
+      if (focused.current && request === dashboardRequest.current) setError(requestError.message);
+    } finally {
+      if (focused.current && request === dashboardRequest.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    }
+  }, []);
+
+  useFocusEffect(useCallback(() => {
+    focused.current = true;
+    loadDashboard();
+    let appState = AppState.currentState;
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active' && appState !== 'active') loadDashboard();
+      appState = nextState;
+    });
+    let midnightTimer;
+    const scheduleMidnightRefresh = () => {
+      midnightTimer = setTimeout(() => {
+        loadDashboard();
+        scheduleMidnightRefresh();
+      }, timeUntilNextBusinessDay());
+    };
+    scheduleMidnightRefresh();
+    return () => {
+      focused.current = false;
+      dashboardRequest.current += 1;
+      receiptRequest.current += 1;
+      subscription.remove();
+      clearTimeout(midnightTimer);
+      setReceipt(null);
+      setReceiptLoading(false);
+      setReceiptError('');
+    };
+  }, [loadDashboard]));
+
+  async function openReceipt(id) {
+    const request = ++receiptRequest.current;
+    setReceiptLoading(true);
+    setReceiptError('');
+    try {
+      const sale = await getSale(id);
+      if (focused.current && request === receiptRequest.current) setReceipt(sale);
+    } catch (requestError) {
+      if (focused.current && request === receiptRequest.current) setReceiptError(requestError.message);
+    } finally {
+      if (focused.current && request === receiptRequest.current) setReceiptLoading(false);
+    }
+  }
+
+  function closeReceipt() {
+    receiptRequest.current += 1;
+    setReceipt(null);
+    setReceiptError('');
+    setReceiptLoading(false);
+  }
+
+  return (
+    <>
+      <DashboardView
+        dashboard={dashboard}
+        loading={loading}
+        refreshing={refreshing}
+        error={error}
+        receiptLoading={receiptLoading}
+        receiptError={receiptError}
+        onRefresh={loadDashboard}
+        onInventory={() => router.navigate('/inventory')}
+        onHistory={() => router.navigate('/purchase-history')}
+        onOpenReceipt={openReceipt}
+      />
+      <ReceiptModal receipt={receipt} onClose={closeReceipt} />
+    </>
+  );
+}

@@ -84,12 +84,14 @@ function searchProducts(input = {}) {
   const limit = input.limit == null ? 30 : Number(input.limit);
   const offset = input.offset == null ? 0 : Number(input.offset);
   const inStock = input.in_stock == null ? '0' : input.in_stock;
+  const status = input.status == null ? 'active' : input.status;
   if (q.length > 120 || !Number.isSafeInteger(limit) || limit < 1 || limit > 50
-    || !Number.isSafeInteger(offset) || offset < 0 || !['0', '1'].includes(inStock)) {
+    || !Number.isSafeInteger(offset) || offset < 0 || !['0', '1'].includes(inStock)
+    || !['active', 'archived'].includes(status) || (status === 'archived' && inStock === '1')) {
     throw productError('Invalid product search parameters');
   }
 
-  const conditions = ['p.active = 1'];
+  const conditions = [`p.active = ${status === 'active' ? 1 : 0}`];
   const params = [];
   let from = inStock === '1' && !q
     ? 'products p INDEXED BY products_instock_name_idx' : 'products p';
@@ -112,6 +114,7 @@ function searchProducts(input = {}) {
   }
   const rows = productRows(`
     SELECT ${productFields.split(', ').map((field) => `p.${field}`).join(', ')}
+      ${status === 'archived' ? ', NOT EXISTS (SELECT 1 FROM sale_items s WHERE s.product_id = p.id) AS can_delete' : ''}
     FROM ${from} WHERE ${conditions.join(' AND ')}
     ORDER BY p.name COLLATE NOCASE, p.id LIMIT ? OFFSET ?
   `, [...params, limit + 1, offset]);
@@ -221,12 +224,30 @@ function archiveProduct(id) {
   inTransaction(database, () => {
     database.run('UPDATE products SET active = 0 WHERE id = ? AND active = 1', [id]);
     if (database.getRowsModified() === 0) throw productError('Product not found', 404);
+  });
+  persistDatabase();
+}
+
+function deleteArchivedProduct(id) {
+  if (!Number.isSafeInteger(id) || id <= 0) throw productError('Invalid product ID');
+  const database = getDatabase();
+  inTransaction(database, () => {
+    const product = rowsFromResult(database.exec(
+      'SELECT active FROM products WHERE id = ?', [id],
+    ))[0];
+    if (!product) throw productError('Product not found', 404);
+    if (product.active) throw productError('Archive the product before deleting it', 409);
+    const usedInSale = rowsFromResult(database.exec(
+      'SELECT 1 FROM sale_items WHERE product_id = ? LIMIT 1', [id],
+    ))[0];
+    if (usedInSale) throw productError('This product is used in past sales and cannot be deleted', 409);
     database.run('DELETE FROM product_search_tokens WHERE product_id = ?', [id]);
+    database.run('DELETE FROM products WHERE id = ? AND active = 0', [id]);
   });
   persistDatabase();
 }
 
 module.exports = {
-  archiveProduct, createProduct, getProductByBarcode, listProducts, lookupProducts,
+  archiveProduct, createProduct, deleteArchivedProduct, getProductByBarcode, listProducts, lookupProducts,
   restoreProduct, searchProducts, updateProduct, updateStock,
 };
