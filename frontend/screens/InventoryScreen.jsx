@@ -192,65 +192,65 @@ export default function InventoryScreen() {
 }
 
 const styles = StyleSheet.create({
-    screen: { 
-      flex: 1, 
-      backgroundColor: '#f5f7f4' 
+    screen: {
+      flex: 1,
+      backgroundColor: '#f5f7f4'
     },
-    container: { 
-      padding: 16, 
-      paddingBottom: 36, 
-      gap: 14 
+    container: {
+      padding: 16,
+      paddingBottom: 36,
+      gap: 14
     },
-    sectionTitle: { 
-      color: '#18291f', 
-      fontSize: 19, 
-      fontWeight: '700', 
-      marginTop: 8 
+    sectionTitle: {
+      color: '#18291f',
+      fontSize: 19,
+      fontWeight: '700',
+      marginTop: 8
     },
-    errorBox: { 
-      backgroundColor: '#fff1ee', 
-      borderRadius: 12, 
-      padding: 14 
+    errorBox: {
+      backgroundColor: '#fff1ee',
+      borderRadius: 12,
+      padding: 14
     },
-    error: { 
-      color: '#a22d21', 
-      fontSize: 13 
+    error: {
+      color: '#a22d21',
+      fontSize: 13
     },
-    emptyBox: { 
-      backgroundColor: '#fff', 
-      borderRadius: 16, 
-      padding: 22, 
-      alignItems: 'center', 
-      gap: 6 
+    emptyBox: {
+      backgroundColor: '#fff',
+      borderRadius: 16,
+      padding: 22,
+      alignItems: 'center',
+      gap: 6
     },
-    emptyTitle: { 
-      color: '#18291f', 
-      fontSize: 16, 
-      fontWeight: '700' 
+    emptyTitle: {
+      color: '#18291f',
+      fontSize: 16,
+      fontWeight: '700'
     },
-    emptyText: { 
-      color: '#647268', 
-      fontSize: 13, 
-      textAlign: 'center' 
+    emptyText: {
+      color: '#647268',
+      fontSize: 13,
+      textAlign: 'center'
     },
-    retryButton: { 
-      alignSelf: 'flex-start', 
-      minHeight: 44, 
-      justifyContent: 'center' 
+    retryButton: {
+      alignSelf: 'flex-start',
+      minHeight: 44,
+      justifyContent: 'center'
     },
-    retryText: { 
-      color: '#17663c', 
-      fontWeight: '700' 
+    retryText: {
+      color: '#17663c',
+      fontWeight: '700'
     },
-    refreshButton: { 
-      minHeight: 44, 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      marginTop: 6 
+    refreshButton: {
+      minHeight: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 6
     },
-    refreshText: { 
-      color: '#17663c', 
-      fontWeight: '700' 
+    refreshText: {
+      color: '#17663c',
+      fontWeight: '700'
     },
   }
 );
