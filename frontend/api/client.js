@@ -73,7 +73,17 @@ export const createSale = (sale) => apiRequest('/sales', {
   body: JSON.stringify(sale),
 });
 
-export const getSales = () => apiRequest('/sales');
+/**
+ * @param {import('../types/purchaseHistory').SalesFilters} [filters]
+ * @param {AbortSignal} [signal]
+ * @returns {Promise<import('../types/purchaseHistory').SaleSummary[]>}
+ */
+export const getSales = (filters = {}, signal) => {
+  const params = [];
+  if (filters.date != null) params.push(`date=${encodeURIComponent(filters.date)}`);
+  if (filters.sort != null) params.push(`sort=${encodeURIComponent(filters.sort)}`);
+  return apiRequest(`/sales${params.length ? `?${params.join('&')}` : ''}`, { signal });
+};
 
 export const getSale = (id) => apiRequest(`/sales/${id}`);
 

@@ -2,6 +2,10 @@ export const BUSINESS_TIME_ZONE = 'Asia/Manila';
 const PHILIPPINE_OFFSET_MS = 8 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+export function getBusinessDate(now = new Date()): string {
+  return new Date(now.getTime() + PHILIPPINE_OFFSET_MS).toISOString().slice(0, 10);
+}
+
 export function timeUntilNextBusinessDay(now = Date.now()): number {
   const nextMidnight = (Math.floor((now + PHILIPPINE_OFFSET_MS) / DAY_MS) + 1) * DAY_MS
     - PHILIPPINE_OFFSET_MS;

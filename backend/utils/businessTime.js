@@ -14,6 +14,14 @@ function businessMidnight(date) {
   return Date.parse(`${date}T00:00:00+08:00`);
 }
 
+function isBusinessDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value) || value.startsWith('0000')) {
+    return false;
+  }
+  const timestamp = Date.parse(`${value}T00:00:00Z`);
+  return Number.isFinite(timestamp) && new Date(timestamp).toISOString().slice(0, 10) === value;
+}
+
 function businessDayWindow(now = new Date()) {
   const date = businessDate(now.getTime());
   const start = businessMidnight(date);
@@ -22,5 +30,5 @@ function businessDayWindow(now = new Date()) {
 
 module.exports = {
   BUSINESS_TIME_ZONE, DAY_MS, PHILIPPINE_UTC_OFFSET_MS,
-  businessDate, businessDayWindow, businessMidnight, toSqlTimestamp,
+  businessDate, businessDayWindow, businessMidnight, isBusinessDate, toSqlTimestamp,
 };

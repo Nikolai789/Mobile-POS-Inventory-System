@@ -1,9 +1,10 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import * as Crypto from 'expo-crypto';
-import { Button, FlatList, StyleSheet, Text } from 'react-native';
+import { Button, FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
 import { createSale, getProductByBarcode, lookupProducts } from '../api/client';
 import useProductCatalog from '../hooks/useProductCatalog';
+import useCheckoutKeyboard from '../hooks/useCheckoutKeyboard';
 import { moneyCents, parseCashCents } from '../utils/money';
 import AvailableProductRow from '../../components/orders/AvailableProductRow';
 import CheckoutPanel from '../../components/orders/CheckoutPanel';
@@ -13,6 +14,7 @@ import BarcodeScannerModal from '../../components/products/BarcodeScannerModal';
 
 export default function ProcessOrders() {
   const catalog = useProductCatalog(true, true);
+  const checkoutKeyboard = useCheckoutKeyboard();
   const [cart, setCart] = useState({});
   const [unavailableIds, setUnavailableIds] = useState(new Set());
   const [checkingCart, setCheckingCart] = useState(false);
@@ -221,61 +223,80 @@ export default function ProcessOrders() {
 
   return (
     <>
-      <FlatList
+      <View
+        ref={checkoutKeyboard.containerRef}
+        collapsable={false}
+        onLayout={checkoutKeyboard.onContainerLayout}
         style={styles.screen}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.content}
-        data={catalog.loading ? [] : catalog.items}
-        keyExtractor={(product) => String(product.id)}
-        ListHeaderComponent={<OrdersHeader
-          error={error}
-          catalogError={catalog.error}
-          query={catalog.query}
-          onQueryChange={catalog.setQuery}
-          pendingSale={pendingSale}
-          loading={catalog.loading}
-          submitting={submitting}
-          onRefresh={() => { catalog.refresh(); refreshCart(); }}
-          onScanBarcode={() => {
-            setScanFeedback('');
-            setScanRetryCode('');
-            setScannerVisible(true);
-          }}
-        />}
-        ListEmptyComponent={!catalog.loading && !catalog.error
-          ? <Text style={styles.muted}>{catalog.query ? 'No matching in-stock products.' : 'search a product.'}</Text> : null}
-        renderItem={({ item }) => {
-          const selectedQuantity = Number(cart[item.id]?.quantity || 0);
-          const disabled = Boolean(pendingSale) || catalog.loading || submitting || selectedQuantity >= item.stock_quantity;
-          return <AvailableProductRow
-            product={item}
-            disabled={disabled}
-            onAdd={() => addProduct(item)}
-          />;
-        }}
-        ListFooterComponent={<>
-          {checkingCart ? <Text style={styles.muted}>Checking selected products...</Text> : null}
-          {cartLookupError ? <>
-            <Text style={styles.error}>Selected products could not be checked.</Text>
-            <Button title="Retry selected products" onPress={() => refreshCart()} />
-          </> : null}
-          <CheckoutPanel
-            cartItems={cartItems}
-            productById={productById}
-            totalCents={totalCents}
-            cashInput={cashInput}
-            cashCents={cashCents}
-            changeCents={changeCents}
-            pendingSale={pendingSale}
-            submitting={submitting}
-            canFinalize={canFinalize}
-            onQuantityChange={changeQuantity}
-            onRemove={removeProduct}
-            onCashChange={changeCash}
-            onFinalize={finalizeSale}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}
+          enabled={Platform.OS !== 'web'}
+          keyboardVerticalOffset={checkoutKeyboard.keyboardOffset}
+          style={styles.screen}
+        >
+          <FlatList
+            ref={checkoutKeyboard.listRef}
+            style={styles.screen}
+            keyboardShouldPersistTaps="handled"
+            onLayout={checkoutKeyboard.onListLayout}
+            onContentSizeChange={checkoutKeyboard.scrollToCash}
+            contentContainerStyle={styles.content}
+            data={catalog.loading ? [] : catalog.items}
+            keyExtractor={(product) => String(product.id)}
+            ListHeaderComponent={<OrdersHeader
+              error={error}
+              catalogError={catalog.error}
+              query={catalog.query}
+              onQueryChange={catalog.setQuery}
+              pendingSale={pendingSale}
+              loading={catalog.loading}
+              submitting={submitting}
+              onRefresh={() => { catalog.refresh(); refreshCart(); }}
+              onScanBarcode={() => {
+                setScanFeedback('');
+                setScanRetryCode('');
+                setScannerVisible(true);
+              }}
+            />}
+            ListEmptyComponent={!catalog.loading && !catalog.error
+              ? <Text style={styles.muted}>{catalog.query ? 'No matching in-stock products.' : 'search a product.'}</Text> : null}
+            renderItem={({ item }) => {
+              const selectedQuantity = Number(cart[item.id]?.quantity || 0);
+              const disabled = Boolean(pendingSale) || catalog.loading || submitting || selectedQuantity >= item.stock_quantity;
+              return <AvailableProductRow
+                product={item}
+                disabled={disabled}
+                onAdd={() => addProduct(item)}
+              />;
+            }}
+            ListFooterComponent={<>
+              {checkingCart ? <Text style={styles.muted}>Checking selected products...</Text> : null}
+              {cartLookupError ? <>
+                <Text style={styles.error}>Selected products could not be checked.</Text>
+                <Button title="Retry selected products" onPress={() => refreshCart()} />
+              </> : null}
+              <CheckoutPanel
+                cartItems={cartItems}
+                productById={productById}
+                totalCents={totalCents}
+                cashInput={cashInput}
+                cashCents={cashCents}
+                changeCents={changeCents}
+                pendingSale={pendingSale}
+                submitting={submitting}
+                canFinalize={canFinalize}
+                onQuantityChange={changeQuantity}
+                onRemove={removeProduct}
+                onCashChange={changeCash}
+                onCashFocus={checkoutKeyboard.onCashFocus}
+                onCashBlur={checkoutKeyboard.onCashBlur}
+                onFinalize={finalizeSale}
+              />
+            </>}
           />
-        </>}
-      />
+        </KeyboardAvoidingView>
+      </View>
       <ReceiptModal receipt={receipt} onClose={() => setReceipt(null)} />
       {scannerVisible ? <BarcodeScannerModal
         visible={scannerVisible}

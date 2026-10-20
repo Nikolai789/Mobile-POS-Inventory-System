@@ -1,11 +1,11 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { formatMoney, formatSaleDate } from '../frontend/utils/money';
 
-export default function ReceiptView({ receipt }) {
+export default function ReceiptView({ receipt, timeZone = undefined }) {
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Receipt #{receipt.id}</Text>
-      <Text style={styles.date}>{formatSaleDate(receipt.created_at)}</Text>
+      <Text style={styles.date}>{formatSaleDate(receipt.created_at, timeZone)}</Text>
       <View style={styles.divider} />
       {receipt.items.map((item) => (
         <View key={item.product_id} style={styles.item}>

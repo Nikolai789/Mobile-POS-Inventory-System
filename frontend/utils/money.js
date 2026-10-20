@@ -12,8 +12,8 @@ export function formatMoney(amount) {
   return `₱${Number(amount).toFixed(2)}`;
 }
 
-export function formatSaleDate(value) {
+export function formatSaleDate(value, timeZone = undefined) {
   if (!value) return '';
   const date = new Date(value.includes('T') ? value : `${value.replace(' ', 'T')}Z`);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString(undefined, timeZone ? { timeZone } : undefined);
 }
