@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="8.4666662mm"
+   height="8.4666662mm"
+   viewBox="0 0 8.4666662 8.4666662"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
+   sodipodi:docname="nav_icons.svg"
+   inkscape:export-filename="Code/Project/nav_icons.svg"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   inkscape:export-batch-name="nav_icons"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="3.7149623"
+     inkscape:cx="34.455263"
+     inkscape:cy="14.535814"
+     inkscape:window-width="1888"
+     inkscape:window-height="1007"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1">
+    <inkscape:page
+       x="0"
+       y="0"
+       width="8.4666662"
+       height="8.4666662"
+       id="page107"
+       margin="0"
+       bleed="0" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-36.93333)">
+    <g
+       id="g132">
+      <path
+         d="m 42.556059,0 a 1.4965214,1.4965214 0 0 1 0.07131,0.45785319 1.4965214,1.4965214 0 0 1 -0.07183,0.45836995 H 44.48462 V 7.5509603 H 37.849369 V 0.91622314 H 39.70662 A 1.4965214,1.4965214 0 0 1 39.63479,0.45785319 1.4965214,1.4965214 0 0 1 39.706104,0 h -2.315621 a 0.45792229,0.45792229 0 0 0 -0.45682,0.45681966 V 8.009847 a 0.45792229,0.45792229 0 0 0 0.45682,0.4568197 h 7.55096 A 0.45792229,0.45792229 0 0 0 45.40033,8.009847 V 0.45681966 A 0.45792229,0.45792229 0 0 0 44.941443,0 Z"
+         style="font-variation-settings:'opsz' 32, 'wght' 700;baseline-shift:baseline;display:inline;overflow:visible;opacity:1;vector-effect:none;stroke-linecap:round;stroke-linejoin:round;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+         id="path128" />
+      <path
+         d="M 41.957129,0 H 40.305033 A 0.94457501,0.94457501 0 0 0 40.186694,0.45785319 0.94457501,0.94457501 0 0 0 41.130823,1.4024984 0.94457501,0.94457501 0 0 0 42.075468,0.45785319 0.94457501,0.94457501 0 0 0 41.957129,0 Z"
+         style="font-variation-settings:'opsz' 32, 'wght' 700;stroke-width:0.60972;stroke-linecap:round;stroke-linejoin:round"
+         id="path129" />
+      <rect
+         style="font-variation-settings:'opsz' 32, 'wght' 700;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.97332;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+         id="rect129"
+         width="5.7952118"
+         height="0.62561226"
+         x="38.269058"
+         y="3.9582965"
+         ry="0.31280613" />
+      <rect
+         style="font-variation-settings:'opsz' 32, 'wght' 700;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.97332;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+         id="rect130"
+         width="5.7952118"
+         height="0.62561226"
+         x="38.269058"
+         y="2.0572309"
+         ry="0.31280613" />
+      <rect
+         style="font-variation-settings:'opsz' 32, 'wght' 700;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.97332;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+         id="rect131"
+         width="5.7952118"
+         height="0.62561226"
+         x="38.269058"
+         y="5.8593621"
+         ry="0.31280613" />
+    </g>
+  </g>
+</svg>

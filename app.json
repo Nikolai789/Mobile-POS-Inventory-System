@@ -2,6 +2,7 @@
   "expo": {
     "name": "Mobile_POS_Inventory_System",
     "slug": "Mobile_POS_Inventory_System",
+    "scheme": "mobile-pos-inventory-system",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -18,7 +19,21 @@
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow this app to scan product barcodes",
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": true
+        }
+      ]
+    ]
   }
 }
