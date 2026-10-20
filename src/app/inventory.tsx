@@ -1,1 +1,1 @@
-export { default } from '../../frontend/screens/InventoryScreen';
+export { default } from '../features/catalog/screens/InventoryScreen';

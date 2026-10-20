@@ -1,3 +1,4 @@
+const { AppError } = require('../utils/errors');
 const { getDatabase, rowsFromResult } = require('../database');
 const {
   BUSINESS_TIME_ZONE, DAY_MS, PHILIPPINE_UTC_OFFSET_MS,
@@ -8,21 +9,23 @@ const PERIOD_DAYS = { today: 1, '7d': 7, '30d': 30 };
 const BUCKET_FORMATS = { hour: '%Y-%m-%dT%H:00:00+08:00', day: '%Y-%m-%d', month: '%Y-%m' };
 const TOP_PRODUCT_LIMIT = 10;
 
+/** @param {unknown} period @returns {asserts period is import('../../shared/contracts').AnalyticsPeriod} */
 function validatePeriod(period) {
   if (typeof period !== 'string' || !['today', '7d', '30d', 'all'].includes(period)) {
-    const error = new Error('period must be today, 7d, 30d, or all');
-    error.statusCode = 400;
-    throw error;
+    throw new AppError('period must be today, 7d, 30d, or all');
   }
 }
 
+/** @param {import('sql.js').Database} database @param {import('../../shared/contracts').AnalyticsPeriod} period @param {Date} now */
 function periodWindow(database, period, now) {
   const today = businessDayWindow(now);
   let startDate;
   if (period === 'all') {
-    const first = rowsFromResult(database.exec(`
+    /** @type {{ date: string | null }[]} */
+    const firstRows = rowsFromResult(database.exec(`
       SELECT date(MIN(created_at), '+8 hours') AS date FROM sales WHERE created_at < ?
-    `, [today.end]))[0];
+    `, [today.end]));
+    const first = firstRows[0];
     startDate = first.date || today.date;
   } else {
     startDate = businessDate(businessMidnight(today.date) - (PERIOD_DAYS[period] - 1) * DAY_MS);
@@ -35,6 +38,7 @@ function periodWindow(database, period, now) {
   };
 }
 
+/** @param {string} startDate @param {string} endDate @param {import('../../shared/contracts').TrendGranularity} granularity */
 function trendBuckets(startDate, endDate, granularity) {
   const buckets = [];
   if (granularity === 'month') {
@@ -56,6 +60,7 @@ function trendBuckets(startDate, endDate, granularity) {
   return buckets;
 }
 
+/** @param {unknown} [period] @param {Date} [now] @returns {import('../../shared/contracts').AnalyticsResponse} */
 function getAnalytics(period = '7d', now = new Date()) {
   validatePeriod(period);
   const database = getDatabase();
@@ -63,17 +68,22 @@ function getAnalytics(period = '7d', now = new Date()) {
   const params = [window.start, window.end];
 
   // Keep sale totals separate from line items: a join would count each receipt more than once.
-  const sales = rowsFromResult(database.exec(`
+  /** @type {{ transaction_count: number; total_cents: number }[]} */
+  const salesRows = rowsFromResult(database.exec(`
     SELECT COUNT(*) AS transaction_count,
       COALESCE(SUM(CAST(ROUND(total_amount * 100) AS INTEGER)), 0) AS total_cents
     FROM sales WHERE created_at >= ? AND created_at < ?
-  `, params))[0];
-  const items = rowsFromResult(database.exec(`
+  `, params));
+  const sales = salesRows[0];
+  /** @type {{ units_sold: number }[]} */
+  const itemRows = rowsFromResult(database.exec(`
     SELECT COALESCE(SUM(i.quantity), 0) AS units_sold
     FROM sales s JOIN sale_items i ON i.sale_id = s.id
     WHERE s.created_at >= ? AND s.created_at < ?
-  `, params))[0];
-  const topProducts = rowsFromResult(database.exec(`
+  `, params));
+  const items = itemRows[0];
+  /** @type {(Omit<import('../../shared/contracts').TopProduct, 'total_sales'> & { total_cents: number })[]} */
+  const topRows = rowsFromResult(database.exec(`
     SELECT i.product_id, COALESCE(p.name, MAX(i.product_name), 'Unknown product') AS name,
       SUM(i.quantity) AS units_sold,
       SUM(CAST(ROUND(i.unit_price * 100) AS INTEGER) * i.quantity) AS total_cents
@@ -83,11 +93,13 @@ function getAnalytics(period = '7d', now = new Date()) {
     GROUP BY i.product_id
     ORDER BY units_sold DESC, name COLLATE NOCASE, i.product_id
     LIMIT ?
-  `, [...params, TOP_PRODUCT_LIMIT])).map(({ total_cents, ...product }) => ({
+  `, [...params, TOP_PRODUCT_LIMIT]));
+  const topProducts = topRows.map(({ total_cents, ...product }) => ({
     ...product, total_sales: total_cents / 100,
   }));
 
   const granularity = period === 'today' ? 'hour' : period === 'all' ? 'month' : 'day';
+  /** @type {{ bucket: string; total_cents: number; transaction_count: number }[]} */
   const trendRows = rowsFromResult(database.exec(`
     SELECT strftime(?, created_at, '+8 hours') AS bucket,
       SUM(CAST(ROUND(total_amount * 100) AS INTEGER)) AS total_cents,

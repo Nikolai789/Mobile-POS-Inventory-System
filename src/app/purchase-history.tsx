@@ -1,1 +1,1 @@
-export { default } from '../../frontend/screens/PurchaseHistory';
+export { default } from '../features/history/screens/PurchaseHistoryScreen';

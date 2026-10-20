@@ -1,1 +1,1 @@
-export { default } from '../../frontend/screens/ArchivedProductsScreen';
+export { default } from '../features/catalog/screens/ArchivedProductsScreen';

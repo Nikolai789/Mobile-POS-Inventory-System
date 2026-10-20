@@ -1,13 +1,12 @@
+const { sendError } = require('../utils/errors');
 const { getAnalytics } = require('../services/analyticsService');
 
+/** @param {import('express').Request} req @param {import('express').Response} res */
 function getAnalyticsSummary(req, res) {
   try {
     return res.json(getAnalytics(req.query.period));
   } catch (error) {
-    const status = error.statusCode || 500;
-    return res.status(status).json({
-      error: status === 400 ? error.message : 'Unable to load analytics',
-    });
+    return sendError(error, res, 'Unable to load analytics', true);
   }
 }
 

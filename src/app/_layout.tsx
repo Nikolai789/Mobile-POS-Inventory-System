@@ -1,5 +1,5 @@
 import { Drawer } from 'expo-router/drawer';
-import useAppFonts from '../../assets/branding/font';
+import useAppFonts from '../shared/hooks/useAppFonts';
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useAppFonts();

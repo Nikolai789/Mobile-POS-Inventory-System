@@ -1,1 +1,1 @@
-export { default } from '../../frontend/screens/HomeScreen';
+export { default } from '../features/dashboard/screens/DashboardScreen';

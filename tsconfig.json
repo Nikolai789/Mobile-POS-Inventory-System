@@ -1,4 +1,9 @@
 {
-  "compilerOptions": {},
-  "extends": "expo/tsconfig.base"
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "allowJs": false,
+    "types": ["react", "node", "jest"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "shared/**/*.ts", "tests/**/*.ts", "tests/**/*.tsx", "expo-env.d.ts", ".expo/types/**/*.ts"]
 }

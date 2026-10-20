@@ -1,1 +1,1 @@
-export { default } from '../../frontend/screens/AnalyticsScreen';
+export { default } from '../features/analytics/screens/AnalyticsScreen';
