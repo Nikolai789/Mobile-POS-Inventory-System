@@ -1,6 +1,6 @@
 # Mobile POS and Inventory System
 
-Members
+#Members
 ```
 John Nikolai Camarillo
 Yoren Angelo Infante
