@@ -15,6 +15,8 @@ export default function CheckoutPanel({
   onQuantityChange,
   onRemove,
   onCashChange,
+  onCashFocus,
+  onCashBlur,
   onFinalize,
 }) {
   const inputDisabled = Boolean(pendingSale) || submitting;
@@ -52,6 +54,8 @@ export default function CheckoutPanel({
         value={cashInput}
         editable={!inputDisabled}
         onChangeText={onCashChange}
+        onFocus={onCashFocus}
+        onBlur={onCashBlur}
       />
       <View style={styles.totalRow}><Text>Change</Text><Text>{formatMoney(Math.max(0, changeCents || 0) / 100)}</Text></View>
       {cashCents != null && cashCents < totalCents ? <Text style={styles.error}>Cash received is less than the total.</Text> : null}

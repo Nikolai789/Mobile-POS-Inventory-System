@@ -100,6 +100,8 @@ async function initializeDatabase() {
       ON sales(created_at DESC, id DESC);
     CREATE INDEX IF NOT EXISTS sale_items_product_id_idx
       ON sale_items(product_id);
+    CREATE INDEX IF NOT EXISTS sale_items_sale_product_idx
+      ON sale_items(sale_id, product_id);
   `);
   const missingTokens = rowsFromResult(database.exec(`
     SELECT p.id, p.name FROM products p

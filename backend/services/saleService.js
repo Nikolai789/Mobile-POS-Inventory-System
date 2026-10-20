@@ -1,4 +1,5 @@
 const { getDatabase, persistDatabase, rowsFromResult } = require('../database');
+const { DAY_MS, businessMidnight, isBusinessDate, toSqlTimestamp } = require('../utils/businessTime');
 
 function saleError(message, statusCode = 400) {
   const error = new Error(message);
@@ -53,11 +54,24 @@ function getSale(id) {
   return { ...sale, items };
 }
 
-function listSales() {
+function listSales({ date, sort = 'newest' } = {}) {
+  if (date !== undefined && !isBusinessDate(date)) {
+    throw saleError('date must be a valid calendar date in YYYY-MM-DD format');
+  }
+  if (sort !== 'newest' && sort !== 'oldest') {
+    throw saleError('sort must be newest or oldest');
+  }
+  const direction = sort === 'oldest' ? 'ASC' : 'DESC';
+  const params = date === undefined ? [] : [
+    toSqlTimestamp(businessMidnight(date)),
+    toSqlTimestamp(businessMidnight(date) + DAY_MS),
+  ];
   return rowsFromResult(getDatabase().exec(`
     SELECT id, total_amount, cash_received, change_amount, created_at
-    FROM sales ORDER BY created_at DESC, id DESC
-  `));
+    FROM sales
+    ${date === undefined ? '' : 'WHERE created_at >= ? AND created_at < ?'}
+    ORDER BY created_at ${direction}, id ${direction}
+  `, params));
 }
 
 function createSale(input = {}) {

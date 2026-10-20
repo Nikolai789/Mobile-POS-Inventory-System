@@ -13,8 +13,8 @@ function createSale(req, res) {
   } catch (error) { return handleError(error, res); }
 }
 
-function listSales(_req, res) {
-  try { return res.json(saleService.listSales()); } catch (error) { return handleError(error, res); }
+function listSales(req, res) {
+  try { return res.json(saleService.listSales(req.query)); } catch (error) { return handleError(error, res); }
 }
 
 function getSale(req, res) {
