@@ -1,9 +1,9 @@
 # Mobile POS and Inventory System
 
 Members
-John Nikolai Camarillo<br /
+John Nikolai Camarillo<
 >
-Yoren Angelo Infante<br / 
+Yoren Angelo Infante< 
 >
 Jethro Estelloso
 
