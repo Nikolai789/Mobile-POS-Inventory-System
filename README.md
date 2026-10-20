@@ -1,8 +1,10 @@
 # Mobile POS and Inventory System
 
 Members
-John Nikolai Camarillo
-Yoren Angelo Infante
+John Nikolai Camarillo<br /
+>
+Yoren Angelo Infante<br / 
+>
 Jethro Estelloso
 
 An Expo SDK 57 application for product inventory, barcode lookup, cash checkout, receipts, and shop analytics. The React Native app supports Android, iOS, and web. Its Express API stores data with sql.js.
