@@ -1,21 +1,8 @@
 const { getDatabase, rowsFromResult } = require('../database');
+const { BUSINESS_TIME_ZONE, businessDayWindow } = require('../utils/businessTime');
 
-const BUSINESS_TIME_ZONE = 'Asia/Manila';
 const LOW_STOCK_LIMIT = 5;
 const LOW_STOCK_PREVIEW_SIZE = 5;
-const DAY_MS = 24 * 60 * 60 * 1000;
-const PHILIPPINE_UTC_OFFSET_MS = 8 * 60 * 60 * 1000;
-
-function businessDayWindow(now = new Date()) {
-  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
-    timeZone: BUSINESS_TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit',
-  }).formatToParts(now).map(({ type, value }) => [type, value]));
-  const date = `${parts.year}-${parts.month}-${parts.day}`;
-  const start = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day))
-    - PHILIPPINE_UTC_OFFSET_MS;
-  const toSqlTimestamp = (milliseconds) => new Date(milliseconds).toISOString().slice(0, 19).replace('T', ' ');
-  return { date, start: toSqlTimestamp(start), end: toSqlTimestamp(start + DAY_MS) };
-}
 
 function getDashboard(now = new Date()) {
   const database = getDatabase();

@@ -4,16 +4,7 @@ import { AppState } from 'react-native';
 import { getDashboard, getSale } from '../api/client';
 import DashboardView from '../../components/dashboard/DashboardView';
 import ReceiptModal from '../../components/orders/ReceiptModal';
-
-const PHILIPPINE_OFFSET_MS = 8 * 60 * 60 * 1000;
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-function timeUntilNextBusinessDay() {
-  const now = Date.now();
-  const nextMidnight = (Math.floor((now + PHILIPPINE_OFFSET_MS) / DAY_MS) + 1) * DAY_MS
-    - PHILIPPINE_OFFSET_MS;
-  return nextMidnight - now + 250;
-}
+import { timeUntilNextBusinessDay } from '../utils/businessTime';
 
 export default function HomeScreen() {
   const [dashboard, setDashboard] = useState(null);
