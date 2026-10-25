@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Mobile_POS_Inventory_System",
+    "name": "Mobile POS & Inventory",
     "slug": "Mobile_POS_Inventory_System",
     "scheme": "mobile-pos-inventory-system",
     "version": "1.0.0",
@@ -11,15 +11,13 @@
       "supportsTablet": true
     },
     "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
+      "package": "com.nikozen1.Mobile_POS_Inventory_System"
     },
     "web": {
-      "favicon": "./assets/favicon.png",
+      "favicon": "./assets/icon.png",
       "bundler": "metro"
     },
     "plugins": [
@@ -34,6 +32,12 @@
           "barcodeScannerEnabled": true
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "baf46868-daca-4602-a921-7e2dfe5fd339"
+      }
+    }
   }
 }

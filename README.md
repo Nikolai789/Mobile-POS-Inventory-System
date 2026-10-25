@@ -24,6 +24,30 @@ The API defaults to port `5000`; set `PORT` to change it. `DATABASE_PATH` defaul
 
 Native camera and date selection require a development build containing the configured modules. Follow [Expo's development build documentation](https://docs.expo.dev/develop/development-builds/introduction/). Configure native behavior through Expo configuration and plugins.
 
+## Build an Android APK
+
+The `preview` profile in `eas.json` produces an installable APK with the API address `http://192.168.254.100:5000/api`. Start the backend on that computer, keep it running, and connect the phone to the same Wi-Fi. If the computer's address changes, update the development and preview API values in `eas.json` and rebuild. Those build values are separate from `.env.local` used by Expo locally.
+
+```sh
+npx eas-cli@latest login
+npx eas-cli@latest build --platform android --profile preview
+```
+
+Install the APK from the resulting EAS build link. The preview APK runs without the Expo development server; it still needs the Express backend. If the phone cannot connect, check that the server's address is correct and that Windows Firewall permits inbound TCP port 5000 on the private network.
+
+`app.config.js` validates the API URL and allows Android HTTP traffic for development and preview builds. Production requires HTTPS. The backend and database are excluded from EAS uploads through `.easignore`; they stay on the server.
+
+For a production build, host the backend at an HTTPS address and set its complete `/api` URL in the EAS production environment. Replace the example domain below with your actual server:
+
+```sh
+npx eas-cli@latest env:set --name EXPO_PUBLIC_API_URL --value https://your-api.example.com/api --environment production --visibility plaintext
+npx eas-cli@latest build --platform android --profile production
+```
+
+The production profile produces an Android App Bundle for store distribution. The API URL is public application configuration; do not put credentials in it. For iOS, use an HTTPS API address in the selected profile or EAS environment as well.
+
+To build a development client instead, run `npx eas-cli@latest build --platform android --profile development`, install it, and start Metro with `npx expo start --dev-client`. The SDK-compatible `expo-dev-client` dependency is included.
+
 ## Project layout
 
 ```text
@@ -47,7 +71,7 @@ npm run check
 
 This runs repository-wide lint, strict frontend TypeScript, checked backend JavaScript, frontend tests, backend tests, and date tests in multiple timezones. Tests use mocked HTTP or temporary databases, never the shop database.
 
-Individual commands are `npm run lint`, `npm run typecheck`, `npm run typecheck:backend`, `npm run test:frontend`, `npm run test:backend`, and `npm run test:history`. Use `npx expo export --platform all` to check Android, iOS, and web bundling. The GitHub workflow runs these checks on pushes and pull requests.
+Individual commands are `npm run lint`, `npm run typecheck`, `npm run typecheck:backend`, `npm run test:build-config`, `npm run test:frontend`, `npm run test:backend`, and `npm run test:history`. Use `npx expo export --platform all` to check Android, iOS, and web bundling. The GitHub workflow runs these checks on pushes and pull requests.
 
 Install new application or testing dependencies with `npx expo install <package>` (add `--dev` for development tools) so Expo can select SDK-compatible versions. Keep both package lockfiles committed.
 

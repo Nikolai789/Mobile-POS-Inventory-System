@@ -8,9 +8,11 @@
     "@react-navigation/drawer": "^7.14.3",
     "@react-navigation/native": "^7.5.0",
     "expo": "~57.0.26",
+    "expo-build-properties": "~57.0.22",
     "expo-camera": "~57.0.6",
     "expo-constants": "~57.0.21",
     "expo-crypto": "~57.0.3",
+    "expo-dev-client": "~57.0.20",
     "expo-font": "~57.0.4",
     "expo-linking": "~57.0.12",
     "expo-router": "~57.0.25",
@@ -28,6 +30,7 @@
   },
   "scripts": {
     "test:history": "node --experimental-strip-types --test tests/historyDate.test.cjs",
+    "test:build-config": "node --test tests/buildConfig.test.cjs",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
@@ -35,7 +38,7 @@
     "lint": "expo lint .",
     "test:frontend": "jest --runInBand",
     "test:backend": "npm test --prefix backend",
-    "test": "npm run test:history && npm run test:frontend && npm run test:backend",
+    "test": "npm run test:build-config && npm run test:history && npm run test:frontend && npm run test:backend",
     "typecheck": "tsc --noEmit",
     "typecheck:backend": "tsc --noEmit -p backend/tsconfig.json",
     "check": "npm run lint && npm run typecheck && npm run typecheck:backend && npm test"
